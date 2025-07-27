@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fabric Inspection</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f6f8;
+        }
+
+        h1 {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        button {
+            padding: 12px 25px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+            margin: 10px;
+            transition: transform 0.2s ease-in-out, background-color 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        #startDetectionBtn { background-color: #f1c40f; color: black; }
+        #startDetectionBtn:hover { background-color: #d4ac0d; }
+
+        #pauseBtn { background-color: #f39c12; }
+        #pauseBtn:hover { background-color: #e67e22; }
+
+        #resumeBtn { background-color: #3498db; }
+        #resumeBtn:hover { background-color: #2980b9; }
+
+        #stopBtn { background-color: #e74c3c; }
+        #stopBtn:hover { background-color: #c0392b; }
+
+        #generateReportBtn { background-color: #9b59b6; }
+        #generateReportBtn:hover { background-color: #8e44ad; }
+
+        #backBtn { background-color: #2ecc71; }
+        #backBtn:hover { background-color: #27ae60; }
+
+        #inputForm, #report, #controls, .video-container {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            background-color: #f9f9f9;
+            display: none;
+        }
+
+        label, input {
+            font-size: 18px;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .video-feed {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: auto;
+        }
+
+        .video-feed img {
+            width: 600px; /* Increased width for larger frame */
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .predictions {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #f8f8f8;
+        }
+
+        .prediction-green {
+            color: green;
+        }
+
+        .prediction-red {
+            color: red;
+        }
+
+        #report {
+            background-color: #f0f5ff;
+            padding: 20px;
+        }
+
+        #report h2 {
+            text-align: center;
+        }
+
+        #report p {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+
+        #fault-rate {
+            color: red;
+            font-weight: bold;
+        }
+
+        .error-message {
+            color: red;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .ribbon {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            padding: 10px 0;
+            background-color: green;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fabric Inspection using Computer Vision</h1>
+
+    <div class="container">
+        <div id="startButtonContainer" style="text-align: center;">
+            <button id="startDetectionBtn">Start Detection</button>
+        </div>
+
+        <div class="video-container" style="display: none;">
+            <div class="video-feed">
+                <img id="video" src="" alt="Camera Feed">
+                <div class="predictions" id="predictions">No predictions yet</div>
+            </div>
+        </div>
+
+        <div id="controls" style="text-align: center;">
+            <button id="pauseBtn">Pause</button>
+            <button id="resumeBtn">Resume</button>
+            <button id="stopBtn">Stop</button>
+        </div>
+
+        <div id="inputForm">
+            <label for="length">Fabric Length (meters):</label>
+            <input type="number" id="length" name="length" step="0.01" required>
+            <label for="width">Fabric Width (meters):</label>
+            <input type="number" id="width" name="width" step="0.01" required>
+            <p class="error-message" id="errorMessage" style="display:none;">Please provide valid inputs.</p>
+            <div style="display: flex; justify-content: space-between;">
+                <button type="button" id="backBtn">Back</button>
+                <button type="button" id="generateReportBtn">Generate Report</button>
+            </div>
+        </div>
+
+        <div id="report">
+            <h2>Inspection Report</h2>
+            <p><strong>Fabric Length:</strong> <span id="fabric-length"></span></p>
+            <p><strong>Fabric Width:</strong> <span id="fabric-width"></span></p>
+            <p><strong>Detected Defects:</strong> <span id="detected-defects"></span></p>
+            <p><strong>Fault Rate:</strong> <span id="fault-rate"></span>%</p>
+        </div>
+
+        <div class="ribbon" id="successRibbon">Submission successful!</div>
+    </div>
+
+    <script>
+        let websocket;
+
+        $('#startDetectionBtn').click(() => {
+            $('#startButtonContainer').hide();
+            $('.video-container').show();
+            $('#controls').show();
+
+            websocket = new WebSocket("ws://localhost:8000/ws/video_feed");
+            websocket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.frame) {
+                    $('#video').attr('src', 'data:image/jpeg;base64,' + data.frame);
+                }
+
+                if (data.defect_type) {
+                    const isGood = data.defect_type.toLowerCase() === "good";
+                    const predictionText = `Prediction: ${data.defect_type}`;
+                    $('#predictions').text(predictionText)
+                        .removeClass(isGood ? "prediction-red" : "prediction-green")
+                        .addClass(isGood ? "prediction-green" : "prediction-red");
+                } else {
+                    $('#predictions').text("Prediction: No defects");
+                }
+            };
+        });
+
+        $('#pauseBtn').click(() => fetch('/pause', { method: 'POST' }));
+        $('#resumeBtn').click(() => fetch('/resume', { method: 'POST' }));
+        $('#stopBtn').click(() => {
+            if (websocket) websocket.close();
+            $('#controls, .video-container').hide();
+            $('#inputForm').show();
+        });
+
+        $('#backBtn').click(() => {
+            $('#inputForm').hide();
+            $('.video-container, #controls').show();
+
+            websocket = new WebSocket("ws://localhost:8000/ws/video_feed");
+            websocket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                if (data.frame) {
+                    $('#video').attr('src', 'data:image/jpeg;base64,' + data.frame);
+                }
+
+                if (data.defect_type) {
+                    const isGood = data.defect_type.toLowerCase() === "good";
+                    const predictionText = `Prediction: ${data.defect_type}`;
+                    $('#predictions').text(predictionText)
+                        .removeClass(isGood ? "prediction-red" : "prediction-green")
+                        .addClass(isGood ? "prediction-green" : "prediction-red");
+                } else {
+                    $('#predictions').text("Prediction: No defects");
+                }
+            };
+        });
+
+        $('#generateReportBtn').click(() => {
+            const length = $('#length').val();
+            const width = $('#width').val();
+
+            if (!length || !width) {
+                $('#errorMessage').show();
+                return;
+            }
+
+            $('#errorMessage').hide();
+            $.post('/generate_report', { length, width }, (response) => {
+                $('#fabric-length').text(response.report.length);
+                $('#fabric-width').text(response.report.width);
+                $('#detected-defects').text(response.report.defects.join(', ') || "None");
+                $('#fault-rate').text(response.report.fault_rate.toFixed(2));
+                $('#inputForm').hide();
+                $('#report').show();
+                $('#startButtonContainer').show();
+                $('#length, #width').val('');
+
+                // Show the ribbon
+                $('#successRibbon').fadeIn();
+                setTimeout(() => {
+                    $('#successRibbon').fadeOut();
+                }, 10000);
+            });
+        });
+    </script>
+</body>
+</html>
