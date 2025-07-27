@@ -1,0 +1,33 @@
+# Core Computer Vision
+opencv-python==4.9.0.80
+numpy==1.26.4
+scikit-image==0.22.0
+Pillow==10.1.0
+
+# Machine Learning & Deep Learning
+tensorflow==2.15.0
+keras==2.15.0
+scikit-learn==1.4.0
+ultralytics==8.1.0  # YOLOv8
+
+# Web Frameworks & APIs
+fastapi==0.109.2
+uvicorn==0.27.0  # ASGI server for FastAPI
+flask==3.0.2
+flask-socketio==5.3.6
+python-socketio==5.11.2
+python-engineio==4.9.0
+
+# Utilities & Visualization
+matplotlib==3.8.2
+seaborn==0.13.2
+tqdm==4.66.1
+pandas==2.1.4
+
+# Image Processing Extensions
+imutils==0.5.4
+albumentations==1.3.1
+
+# Additional Dependencies
+pyyaml==6.0.1  # For YOLO configs
+requests==2.31.0  # API calls
