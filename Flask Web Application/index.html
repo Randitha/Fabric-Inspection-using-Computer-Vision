@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fabric Inspection using Computer Vision</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        form {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 150px;
+            padding: 8px;
+        }
+
+        button {
+            padding: 10px 15px;
+        }
+
+        #video-feed, #controls, #report {
+            display: none; /* Initially hidden */
+            margin-top: 20px;
+        }
+
+        #video-feed img {
+            display: block;
+            margin: 0 auto;
+        }
+
+        #report {
+            border: 1px solid black;
+            padding: 20px;
+        }
+
+        #controls {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Fabric Inspection using Computer Vision</h1>
+
+    <!-- Form for fabric length and width -->
+    <form id="startForm">
+        <label for="length">Fabric Length (meters):</label>
+        <input type="number" id="length" name="length" step="0.01" required>
+
+        <label for="width">Fabric Width (meters):</label>
+        <input type="number" id="width" name="width" step="0.01" required>
+
+        <button type="submit">Start Detection</button>
+    </form>
+
+    <!-- Video feed section -->
+    <div id="video-feed">
+        <h2 style="text-align:center;">Video Feed</h2>
+        <img id="videoStream" src="" alt="Live Video Feed" width="640" height="480">
+    </div>
+
+    <!-- Control buttons -->
+    <div id="controls">
+        <button id="pauseBtn">Pause</button>
+        <button id="resumeBtn">Resume</button>
+        <button id="stopBtn">Stop</button>
+    </div>
+
+    <!-- Report section -->
+    <div id="report">
+        <h2>Inspection Report</h2>
+        <p>Fabric Length: <span id="fabric-length"></span> meters</p>
+        <p>Fabric Width: <span id="fabric-width"></span> meters</p>
+        <p>Detected Defects: <span id="detected-defects"></span></p>
+        <p>Fault Rate: <span id="fault-rate"></span>%</p>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Start detection form submission
+            $('#startForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const length = $('#length').val();
+                const width = $('#width').val();
+
+                // Start detection and show video feed immediately
+                $.post('/start_detection', { length: length, width: width }, function(response) {
+                    console.log(response.status);
+
+                    if (response.status === 'started') {
+                        $('#videoStream').attr('src', '/video_feed?length=' + length + '&width=' + width);
+                        $('#video-feed').show();  // Show video feed immediately
+                        $('#controls').show();    // Show control buttons
+                        $('#report').hide();      // Hide the report if visible
+                    }
+                });
+            });
+
+            // Pause button
+            $('#pauseBtn').on('click', function() {
+                $.post('/pause', function(response) {
+                    console.log(response.status);
+                });
+            });
+
+            // Resume button
+            $('#resumeBtn').on('click', function() {
+                $.post('/resume', function(response) {
+                    console.log(response.status);
+                });
+            });
+
+            // Stop button
+            $('#stopBtn').on('click', function() {
+                $.post('/stop', function(response) {
+                    console.log(response.status);
+                    console.log(response.report);
+
+                    if (response.status === 'stopped') {
+                        $('#fabric-length').text(response.report.length);
+                        $('#fabric-width').text(response.report.width);
+                        $('#detected-defects').text(response.report.defects.join(', '));
+                        $('#fault-rate').text(response.report.fault_rate.toFixed(2));
+
+                        // Show the report and hide video feed and controls
+                        $('#report').show();
+                        $('#video-feed').hide();
+                        $('#controls').hide();
+
+                        // Reset the input fields for a new inspection
+                        $('#length').val('');
+                        $('#width').val('');
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+</html>
