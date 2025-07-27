@@ -1,27 +1,37 @@
-🧵 Automated Real-Time Fabric Inspection using YOLOv8 and FastAPI
+# 🧵 Automated Real-Time Fabric Inspection using YOLOv8 and FastAPI
 
-This project automates the conventional fabric inspection process — traditionally slow, manual, and error-prone — by combining deep learning, computer vision, and web technologies to deliver a real-time, web-based fabric defect detection system.
+This project automates the conventional fabric inspection process — traditionally slow, manual, and error-prone — by combining **deep learning**, **computer vision**, and **web technologies** to deliver a **real-time, web-based fabric defect detection system**.
 
-🚀 Overview
+---
 
-We developed a system capable of detecting fabric defects such as:
+## 🚀 Overview
 
-Holes
-Slubs
-Foreign yarn
-Surface contamination
-Using a custom dataset called RuRa, built from real factory data (collected with MAS Holdings) and the public TILDA dataset, we trained and evaluated multiple models including VGG19, ResNet50, and YOLOv8 — with YOLOv8 achieving the best performance.
+The system detects the following fabric defects:
 
-🧠 Tech Stack
+* Holes
+* Slubs
+* Foreign yarn
+* Surface contamination
 
-Model Training: VGG19, ResNet50, YOLOv8
-Dataset: RuRa (MAS + TILDA), with class balancing via augmentation
-Backend: FastAPI with WebSocket for live video streaming
-Frontend: Responsive UI with live preview, pause/resume, and defect reporting
-Output: Fault points, fault rate calculation, and auto-generated inspection report
+We created a custom dataset called **RuRa**, which combines real-world defect data (collected in collaboration with MAS Holdings) and the public **TILDA** dataset. To address class imbalance, we applied various data augmentation techniques. Models including **VGG19**, **ResNet50**, and **YOLOv8** were trained, with **YOLOv8** achieving the highest performance.
 
-🏆 Key Highlights
-✅ Built and augmented a hybrid dataset (RuRa) for real-world defect scenarios
-⚡ Achieved high-speed, accurate detection with YOLOv8 in live video streams
-📊 Generated detailed quality reports to accept or reject fabric rolls
-📄 Published a research article documenting the pipeline and results
+---
+
+## 🧠 Tech Stack
+
+* **Model Training:** VGG19, ResNet50, YOLOv8
+* **Dataset:** RuRa (MAS + TILDA), augmented to address class imbalance
+* **Backend:** FastAPI + WebSocket for near real-time video stream processing
+* **Frontend:** Responsive web UI with pause/resume functionality and defect reporting
+* **Output:** Fault points, fault rate computation, and auto-generated inspection reports
+
+---
+
+## 🏆 Key Highlights
+
+* ✅ Created and augmented a hybrid dataset (RuRa) for real-world defect scenarios
+* ⚡ Achieved superior real-time detection with YOLOv8
+* 🖥️ Built a live video streaming web interface with interactive controls
+* 📊 Generated inspection reports with fault metrics and pass/fail status
+* 📄 Published a research article documenting the methodology and results
+
